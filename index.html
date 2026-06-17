@@ -6,222 +6,153 @@
 <title>CyberGuard AI · SOC Assistant</title>
 <style>
   :root {
-    --bg: #0a0e17;
-    --bg2: #0f1520;
-    --bg3: #141c2e;
-    --panel: #1a2236;
-    --border: rgba(99,179,237,0.12);
-    --border2: rgba(99,179,237,0.22);
-    --accent: #3b82f6;
-    --accent2: #60a5fa;
-    --accent-glow: rgba(59,130,246,0.15);
-    --red: #ef4444;
-    --orange: #f97316;
-    --yellow: #eab308;
-    --green: #22c55e;
-    --text: #e2e8f0;
-    --text2: #94a3b8;
-    --text3: #64748b;
-    --mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
-    --sans: 'Inter', system-ui, sans-serif;
-    --radius: 8px;
-    --radius-lg: 12px;
+    --bg: #0a0e17; --bg2: #0f1520; --bg3: #141c2e; --panel: #1a2236;
+    --border: rgba(99,179,237,0.12); --border2: rgba(99,179,237,0.22);
+    --accent: #3b82f6; --accent2: #60a5fa; --accent-glow: rgba(59,130,246,0.15);
+    --red: #ef4444; --orange: #f97316; --yellow: #eab308; --green: #22c55e;
+    --text: #e2e8f0; --text2: #94a3b8; --text3: #64748b;
+    --mono: 'JetBrains Mono','Fira Code',monospace; --sans: 'Inter',system-ui,sans-serif;
+    --radius: 8px; --radius-lg: 12px;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: var(--bg); color: var(--text); font-family: var(--sans); height: 100vh; display: flex; overflow: hidden; }
 
-  /* ── Sidebar ── */
-  #sidebar {
-    width: 260px; min-width: 260px; background: var(--bg2);
-    border-right: 1px solid var(--border); display: flex; flex-direction: column;
-    transition: transform 0.2s;
-  }
-  .sidebar-header {
-    padding: 20px 16px 14px; border-bottom: 1px solid var(--border);
-  }
-  .logo { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
-  .logo-icon {
-    width: 32px; height: 32px; background: var(--accent); border-radius: 8px;
-    display: flex; align-items: center; justify-content: center; font-size: 16px;
-    box-shadow: 0 0 16px var(--accent-glow);
-  }
+  /* Sidebar */
+  #sidebar { width: 270px; min-width: 270px; background: var(--bg2); border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow-y: auto; }
+  .sidebar-header { padding: 18px 16px 12px; border-bottom: 1px solid var(--border); }
+  .logo { display: flex; align-items: center; gap: 10px; margin-bottom: 3px; }
+  .logo-icon { width: 32px; height: 32px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; box-shadow: 0 0 16px var(--accent-glow); }
   .logo-text { font-size: 15px; font-weight: 600; letter-spacing: -0.3px; }
   .logo-sub { font-size: 11px; color: var(--text3); letter-spacing: 0.5px; text-transform: uppercase; margin-left: 42px; }
-
-  .new-chat-btn {
-    margin: 12px 16px; padding: 9px 14px; background: var(--accent-glow);
-    border: 1px solid var(--border2); border-radius: var(--radius); color: var(--accent2);
-    font-size: 13px; font-family: var(--sans); cursor: pointer; text-align: left;
-    display: flex; align-items: center; gap: 8px; transition: background 0.15s;
-  }
+  .new-chat-btn { margin: 10px 16px; padding: 8px 14px; background: var(--accent-glow); border: 1px solid var(--border2); border-radius: var(--radius); color: var(--accent2); font-size: 13px; font-family: var(--sans); cursor: pointer; text-align: left; display: flex; align-items: center; gap: 8px; transition: background 0.15s; width: calc(100% - 32px); }
   .new-chat-btn:hover { background: rgba(59,130,246,0.22); }
 
-  .mode-section { padding: 8px 16px; }
-  .mode-label { font-size: 10px; color: var(--text3); letter-spacing: 0.8px; text-transform: uppercase; margin-bottom: 6px; }
-  .mode-btn {
-    width: 100%; padding: 8px 10px; background: transparent; border: none;
-    color: var(--text2); font-size: 12px; font-family: var(--sans); cursor: pointer;
-    border-radius: var(--radius); text-align: left; display: flex; align-items: center;
-    gap: 8px; transition: all 0.15s; margin-bottom: 2px;
-  }
+  .section-label { font-size: 10px; color: var(--text3); letter-spacing: 0.8px; text-transform: uppercase; padding: 10px 16px 5px; }
+
+  /* Mode buttons */
+  .mode-btn { width: 100%; padding: 7px 16px; background: transparent; border: none; color: var(--text2); font-size: 12px; font-family: var(--sans); cursor: pointer; text-align: left; display: flex; align-items: center; gap: 8px; transition: all 0.15s; }
   .mode-btn:hover { background: var(--bg3); color: var(--text); }
-  .mode-btn.active { background: var(--accent-glow); color: var(--accent2); border: 1px solid var(--border2); }
+  .mode-btn.active { background: var(--accent-glow); color: var(--accent2); border-left: 2px solid var(--accent); }
   .mode-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
 
+  /* Tool buttons */
+  .tool-btn { width: calc(100% - 32px); margin: 3px 16px; padding: 8px 12px; background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text2); font-size: 12px; font-family: var(--sans); cursor: pointer; text-align: left; display: flex; align-items: center; gap: 8px; transition: all 0.15s; }
+  .tool-btn:hover { border-color: var(--border2); color: var(--text); background: var(--panel); }
+  .tool-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .tool-btn .tool-icon { font-size: 14px; }
+  .tool-btn .tool-info { display: flex; flex-direction: column; }
+  .tool-btn .tool-name { font-size: 12px; font-weight: 500; }
+  .tool-btn .tool-desc { font-size: 10px; color: var(--text3); margin-top: 1px; }
+  .tool-spinner { display: none; width: 12px; height: 12px; border: 2px solid var(--border2); border-top-color: var(--accent2); border-radius: 50%; animation: spin 0.6s linear infinite; margin-left: auto; }
+  .tool-btn.loading .tool-spinner { display: block; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* CVE input row */
+  .cve-row { display: flex; gap: 6px; margin: 3px 16px; }
+  .cve-input { flex: 1; background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text); font-size: 12px; font-family: var(--mono); padding: 7px 10px; outline: none; }
+  .cve-input:focus { border-color: var(--accent); }
+  .cve-input::placeholder { color: var(--text3); }
+  .cve-go-btn { padding: 7px 12px; background: var(--accent); border: none; border-radius: var(--radius); color: #fff; font-size: 12px; cursor: pointer; font-weight: 500; }
+  .cve-go-btn:hover { opacity: 0.85; }
+
+  /* Sidebar footer */
   .sidebar-footer { margin-top: auto; padding: 12px 16px; border-top: 1px solid var(--border); }
-  .api-key-section { }
   .api-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px; }
   .api-input-row { display: flex; gap: 6px; }
-  .api-input {
-    flex: 1; background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius);
-    color: var(--text); font-size: 12px; font-family: var(--mono); padding: 7px 10px;
-    outline: none;
-  }
+  .api-input { flex: 1; background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text); font-size: 12px; font-family: var(--mono); padding: 7px 10px; outline: none; }
   .api-input:focus { border-color: var(--accent); }
-  .api-save-btn {
-    padding: 7px 12px; background: var(--accent); border: none; border-radius: var(--radius);
-    color: #fff; font-size: 12px; font-family: var(--sans); cursor: pointer; font-weight: 500;
-    transition: opacity 0.15s;
-  }
+  .api-save-btn { padding: 7px 12px; background: var(--accent); border: none; border-radius: var(--radius); color: #fff; font-size: 12px; font-family: var(--sans); cursor: pointer; font-weight: 500; }
   .api-save-btn:hover { opacity: 0.85; }
   .api-status { font-size: 11px; margin-top: 5px; }
   .api-status.ok { color: var(--green); }
   .api-status.err { color: var(--red); }
 
-  /* ── Main area ── */
+  /* Main */
   #main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-
-  /* toolbar */
-  #toolbar {
-    padding: 12px 20px; border-bottom: 1px solid var(--border);
-    display: flex; align-items: center; gap: 12px; background: var(--bg2);
-  }
+  #toolbar { padding: 11px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; background: var(--bg2); flex-shrink: 0; }
   .toolbar-mode { font-size: 13px; font-weight: 500; color: var(--accent2); }
   .toolbar-sep { width: 1px; height: 16px; background: var(--border2); }
   .toolbar-hint { font-size: 12px; color: var(--text3); }
-  .clear-btn {
-    margin-left: auto; padding: 5px 12px; background: transparent; border: 1px solid var(--border);
-    border-radius: var(--radius); color: var(--text3); font-size: 12px; font-family: var(--sans);
-    cursor: pointer; transition: all 0.15s;
-  }
+  .clear-btn { margin-left: auto; padding: 5px 12px; background: transparent; border: 1px solid var(--border); border-radius: var(--radius); color: var(--text3); font-size: 12px; font-family: var(--sans); cursor: pointer; transition: all 0.15s; }
   .clear-btn:hover { border-color: var(--red); color: var(--red); }
 
-  /* messages */
-  #messages {
-    flex: 1; overflow-y: auto; padding: 24px 20px; display: flex; flex-direction: column; gap: 20px;
-    scroll-behavior: smooth;
-  }
+  /* Messages */
+  #messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 18px; scroll-behavior: smooth; }
   #messages::-webkit-scrollbar { width: 4px; }
-  #messages::-webkit-scrollbar-track { background: transparent; }
   #messages::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
 
-  .msg { display: flex; gap: 12px; max-width: 860px; }
+  .msg { display: flex; gap: 12px; max-width: 880px; width: 100%; }
   .msg.user { flex-direction: row-reverse; align-self: flex-end; }
-  .msg-avatar {
-    width: 28px; height: 28px; border-radius: 6px; flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center; font-size: 13px;
-    margin-top: 2px;
-  }
+  .msg-avatar { width: 28px; height: 28px; border-radius: 6px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; margin-top: 2px; }
   .msg.user .msg-avatar { background: var(--accent); }
   .msg.assistant .msg-avatar { background: var(--panel); border: 1px solid var(--border2); }
-  .msg-body { flex: 1; }
+  .msg.tool-result .msg-avatar { background: rgba(34,197,94,0.15); border: 1px solid rgba(34,197,94,0.3); }
+  .msg-body { flex: 1; min-width: 0; }
   .msg-role { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 5px; }
   .msg.user .msg-role { text-align: right; }
-  .msg-content {
-    background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius-lg);
-    padding: 12px 16px; font-size: 14px; line-height: 1.65; color: var(--text);
-    white-space: pre-wrap; word-break: break-word;
-  }
+  .msg-content { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 12px 16px; font-size: 14px; line-height: 1.65; color: var(--text); white-space: pre-wrap; word-break: break-word; }
   .msg.user .msg-content { background: var(--accent-glow); border-color: var(--border2); }
+  .msg.tool-result .msg-content { background: rgba(34,197,94,0.05); border-color: rgba(34,197,94,0.2); font-size: 13px; }
 
-  /* KQL blocks */
-  .msg-content pre {
-    background: #0d1117; border: 1px solid var(--border2); border-radius: var(--radius);
-    padding: 14px; margin: 10px 0; overflow-x: auto; position: relative;
-  }
+  /* Tool result card */
+  .tool-card { background: var(--bg3); border: 1px solid var(--border2); border-radius: var(--radius); padding: 12px 14px; margin: 4px 0; }
+  .tool-card-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .tool-card-icon { font-size: 14px; }
+  .tool-card-title { font-size: 12px; font-weight: 600; color: var(--accent2); }
+  .tool-card-body { font-size: 13px; line-height: 1.6; color: var(--text2); }
+  .tool-card-body strong { color: var(--text); }
+
+  /* Code blocks */
+  .msg-content pre { background: #0d1117; border: 1px solid var(--border2); border-radius: var(--radius); padding: 14px; margin: 10px 0; overflow-x: auto; position: relative; }
   .msg-content code { font-family: var(--mono); font-size: 13px; color: #79c0ff; }
   .msg-content pre code { color: #e6edf3; }
-  .copy-btn {
-    position: absolute; top: 8px; right: 8px; padding: 4px 10px;
-    background: var(--panel); border: 1px solid var(--border2); border-radius: 5px;
-    color: var(--text2); font-size: 11px; font-family: var(--sans); cursor: pointer;
-    transition: all 0.15s;
-  }
+  .copy-btn { position: absolute; top: 8px; right: 8px; padding: 4px 10px; background: var(--panel); border: 1px solid var(--border2); border-radius: 5px; color: var(--text2); font-size: 11px; font-family: var(--sans); cursor: pointer; transition: all 0.15s; }
   .copy-btn:hover { background: var(--accent-glow); color: var(--accent2); }
   .copy-btn.copied { color: var(--green); border-color: var(--green); }
 
-  /* severity badges */
-  .badge {
-    display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px;
-    font-weight: 600; letter-spacing: 0.5px; margin: 0 2px;
-  }
+  /* Severity badges */
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; letter-spacing: 0.5px; margin: 0 2px; }
   .badge-critical { background: rgba(239,68,68,0.15); color: #fca5a5; border: 1px solid rgba(239,68,68,0.3); }
   .badge-high { background: rgba(249,115,22,0.15); color: #fdba74; border: 1px solid rgba(249,115,22,0.3); }
   .badge-medium { background: rgba(234,179,8,0.15); color: #fde047; border: 1px solid rgba(234,179,8,0.3); }
   .badge-low { background: rgba(34,197,94,0.15); color: #86efac; border: 1px solid rgba(34,197,94,0.3); }
 
-  /* welcome screen */
-  #welcome {
-    flex: 1; display: flex; flex-direction: column; align-items: center;
-    justify-content: center; padding: 40px 20px; text-align: center;
-  }
-  .welcome-icon { font-size: 48px; margin-bottom: 16px; }
+  /* Welcome */
+  #welcome { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px; text-align: center; }
+  .welcome-icon { font-size: 44px; margin-bottom: 14px; }
   .welcome-title { font-size: 22px; font-weight: 600; margin-bottom: 8px; letter-spacing: -0.5px; }
-  .welcome-sub { font-size: 14px; color: var(--text2); margin-bottom: 32px; max-width: 460px; line-height: 1.6; }
-  .quick-prompts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; max-width: 600px; width: 100%; }
-  .quick-btn {
-    background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius-lg);
-    padding: 14px 16px; text-align: left; cursor: pointer; transition: all 0.15s;
-    color: var(--text); font-family: var(--sans);
-  }
+  .welcome-sub { font-size: 14px; color: var(--text2); margin-bottom: 28px; max-width: 480px; line-height: 1.6; }
+  .quick-prompts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; max-width: 620px; width: 100%; }
+  .quick-btn { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 14px 16px; text-align: left; cursor: pointer; transition: all 0.15s; color: var(--text); font-family: var(--sans); }
   .quick-btn:hover { border-color: var(--border2); background: var(--bg3); }
-  .quick-btn-label { font-size: 12px; color: var(--accent2); font-weight: 500; margin-bottom: 4px; }
+  .quick-btn-label { font-size: 11px; color: var(--accent2); font-weight: 600; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
   .quick-btn-text { font-size: 13px; color: var(--text2); line-height: 1.4; }
 
-  /* input area */
-  #input-area {
-    padding: 16px 20px; border-top: 1px solid var(--border); background: var(--bg2);
-  }
-  .input-wrapper {
-    display: flex; gap: 10px; align-items: flex-end;
-    background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius-lg);
-    padding: 10px 12px; transition: border-color 0.15s;
-  }
+  /* Input */
+  #input-area { padding: 14px 20px; border-top: 1px solid var(--border); background: var(--bg2); flex-shrink: 0; }
+  .input-wrapper { display: flex; gap: 10px; align-items: flex-end; background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 10px 12px; transition: border-color 0.15s; }
   .input-wrapper:focus-within { border-color: var(--accent); }
-  #user-input {
-    flex: 1; background: transparent; border: none; color: var(--text);
-    font-size: 14px; font-family: var(--sans); resize: none; outline: none;
-    min-height: 22px; max-height: 160px; line-height: 1.5;
-  }
+  #user-input { flex: 1; background: transparent; border: none; color: var(--text); font-size: 14px; font-family: var(--sans); resize: none; outline: none; min-height: 22px; max-height: 160px; line-height: 1.5; }
   #user-input::placeholder { color: var(--text3); }
-  #send-btn {
-    width: 32px; height: 32px; background: var(--accent); border: none; border-radius: 7px;
-    color: #fff; font-size: 15px; cursor: pointer; display: flex; align-items: center;
-    justify-content: center; flex-shrink: 0; transition: opacity 0.15s;
-  }
+  #send-btn { width: 32px; height: 32px; background: var(--accent); border: none; border-radius: 7px; color: #fff; font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: opacity 0.15s; }
   #send-btn:hover { opacity: 0.85; }
   #send-btn:disabled { opacity: 0.35; cursor: not-allowed; }
-  .input-hint { font-size: 11px; color: var(--text3); margin-top: 7px; text-align: center; }
+  .input-hint { font-size: 11px; color: var(--text3); margin-top: 6px; text-align: center; }
 
-  /* typing indicator */
-  .typing { display: flex; gap: 4px; align-items: center; padding: 10px 16px; }
-  .typing span {
-    width: 6px; height: 6px; background: var(--text3); border-radius: 50%;
-    animation: bounce 1.2s ease-in-out infinite;
-  }
+  /* Typing */
+  .typing { display: flex; gap: 4px; align-items: center; padding: 8px 0; }
+  .typing span { width: 6px; height: 6px; background: var(--text3); border-radius: 50%; animation: bounce 1.2s ease-in-out infinite; }
   .typing span:nth-child(2) { animation-delay: 0.2s; }
   .typing span:nth-child(3) { animation-delay: 0.4s; }
   @keyframes bounce { 0%,80%,100%{transform:translateY(0)} 40%{transform:translateY(-6px)} }
-
-  .stream-cursor::after {
-    content: '▋'; animation: blink 0.7s infinite; color: var(--accent2);
-  }
+  .stream-cursor::after { content:'▋'; animation: blink 0.7s infinite; color: var(--accent2); }
   @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+  .divider { border: none; border-top: 1px solid var(--border); margin: 4px 16px; }
 </style>
 </head>
 <body>
 
-<!-- Sidebar -->
 <div id="sidebar">
   <div class="sidebar-header">
     <div class="logo">
@@ -231,47 +162,72 @@
     <div class="logo-sub">SOC Assistant · Subash Ghimire</div>
   </div>
 
-  <button class="new-chat-btn" onclick="newChat()">
-    <span>＋</span> New conversation
-  </button>
+  <button class="new-chat-btn" onclick="newChat()">＋ New conversation</button>
 
-  <div class="mode-section">
-    <div class="mode-label">Mode</div>
-    <button class="mode-btn active" onclick="setMode('general')" id="mode-general">
-      <span class="mode-dot" style="background:var(--accent)"></span>
-      General analyst
-    </button>
-    <button class="mode-btn" onclick="setMode('vuln')" id="mode-vuln">
-      <span class="mode-dot" style="background:var(--orange)"></span>
-      Vulnerability management
-    </button>
-    <button class="mode-btn" onclick="setMode('hunt')" id="mode-hunt">
-      <span class="mode-dot" style="background:var(--green)"></span>
-      Threat hunting · KQL
-    </button>
-    <button class="mode-btn" onclick="setMode('risk')" id="mode-risk">
-      <span class="mode-dot" style="background:var(--yellow)"></span>
-      Risk assessment
-    </button>
-    <button class="mode-btn" onclick="setMode('grc')" id="mode-grc">
-      <span class="mode-dot" style="background:#a78bfa)"></span>
-      Governance · GRC
-    </button>
+  <div class="section-label">Mode</div>
+  <button class="mode-btn active" onclick="setMode('general')" id="mode-general"><span class="mode-dot" style="background:var(--accent)"></span>General analyst</button>
+  <button class="mode-btn" onclick="setMode('vuln')" id="mode-vuln"><span class="mode-dot" style="background:var(--orange)"></span>Vulnerability management</button>
+  <button class="mode-btn" onclick="setMode('hunt')" id="mode-hunt"><span class="mode-dot" style="background:var(--green)"></span>Threat hunting · KQL</button>
+  <button class="mode-btn" onclick="setMode('risk')" id="mode-risk"><span class="mode-dot" style="background:var(--yellow)"></span>Risk assessment</button>
+  <button class="mode-btn" onclick="setMode('grc')" id="mode-grc"><span class="mode-dot" style="background:#a78bfa"></span>Governance · GRC</button>
+
+  <hr class="divider" style="margin-top:10px"/>
+  <div class="section-label">Live intel tools</div>
+
+  <!-- CVE Lookup -->
+  <div class="cve-row">
+    <input class="cve-input" id="cve-input" placeholder="CVE-2024-XXXXX" onkeydown="if(event.key==='Enter')lookupCVE()"/>
+    <button class="cve-go-btn" onclick="lookupCVE()">Look up</button>
   </div>
 
+  <!-- CISA KEV -->
+  <button class="tool-btn" id="btn-kev" onclick="fetchKEV()">
+    <span class="tool-icon">🚨</span>
+    <span class="tool-info"><span class="tool-name">CISA KEV feed</span><span class="tool-desc">Latest known exploited CVEs</span></span>
+    <div class="tool-spinner"></div>
+  </button>
+
+  <!-- MITRE ATT&CK -->
+  <div class="cve-row">
+    <input class="cve-input" id="mitre-input" placeholder="T1059.001" onkeydown="if(event.key==='Enter')lookupMITRE()"/>
+    <button class="cve-go-btn" onclick="lookupMITRE()">Look up</button>
+  </div>
+
+  <!-- Threat search -->
+  <button class="tool-btn" id="btn-threat" onclick="promptThreatSearch()">
+    <span class="tool-icon">🌐</span>
+    <span class="tool-info"><span class="tool-name">Threat intel search</span><span class="tool-desc">Search current campaigns & advisories</span></span>
+    <div class="tool-spinner"></div>
+  </button>
+
+  <!-- CVSS calculator -->
+  <button class="tool-btn" onclick="quickPrompt('Open a CVSS v3.1 calculator session. Ask me for the vector string components one by one and then compute the base score and severity rating.')">
+    <span class="tool-icon">🧮</span>
+    <span class="tool-info"><span class="tool-name">CVSS v3.1 calculator</span><span class="tool-desc">Walk through base score interactively</span></span>
+  </button>
+
+  <!-- KQL builder -->
+  <button class="tool-btn" onclick="quickPrompt('Enter KQL builder mode. Ask me: (1) platform — Sentinel or Defender, (2) hunt objective, (3) relevant tables or log sources. Then generate a production-ready KQL query with comments.')">
+    <span class="tool-icon">🔍</span>
+    <span class="tool-info"><span class="tool-name">KQL query builder</span><span class="tool-desc">Guided Sentinel / Defender query gen</span></span>
+  </button>
+
+  <!-- Risk matrix -->
+  <button class="tool-btn" onclick="quickPrompt('Start a risk assessment session. Ask me for: asset name, asset classification, threat scenario, and existing controls. Then produce a full risk assessment with likelihood × impact matrix aligned to NIST CSF and ISO 27001.')">
+    <span class="tool-icon">📊</span>
+    <span class="tool-info"><span class="tool-name">Risk assessment wizard</span><span class="tool-desc">Guided NIST · ISO 27001 · CIS scoring</span></span>
+  </button>
+
   <div class="sidebar-footer">
-    <div class="api-key-section">
-      <div class="api-label">Anthropic API Key</div>
-      <div class="api-input-row">
-        <input class="api-input" type="password" id="api-key-input" placeholder="sk-ant-..." />
-        <button class="api-save-btn" onclick="saveApiKey()">Save</button>
-      </div>
-      <div class="api-status" id="api-status"></div>
+    <div class="api-label">Anthropic API Key</div>
+    <div class="api-input-row">
+      <input class="api-input" type="password" id="api-key-input" placeholder="sk-ant-..."/>
+      <button class="api-save-btn" onclick="saveApiKey()">Save</button>
     </div>
+    <div class="api-status" id="api-status"></div>
   </div>
 </div>
 
-<!-- Main -->
 <div id="main">
   <div id="toolbar">
     <span class="toolbar-mode" id="toolbar-mode">🛡️ General analyst</span>
@@ -283,141 +239,153 @@
   <div id="welcome">
     <div class="welcome-icon">🛡️</div>
     <div class="welcome-title">Ready when you are, Subash</div>
-    <div class="welcome-sub">Your personal SOC assistant. Ask about CVEs, generate KQL queries for Sentinel or Defender, run risk assessments, or work through governance tasks.</div>
+    <div class="welcome-sub">Your personal SOC assistant with live CVE lookup, CISA KEV feed, MITRE ATT&CK, KQL generation, and risk assessments. No subscription. No limits.</div>
     <div class="quick-prompts">
-      <button class="quick-btn" onclick="quickPrompt('Generate a KQL query for Sentinel to detect successful logins from impossible travel locations in the last 24 hours')">
+      <button class="quick-btn" onclick="quickPrompt('Generate a KQL query for Microsoft Sentinel to detect successful logins from impossible travel — same user authenticating from two geographically distant locations within 1 hour.')">
         <div class="quick-btn-label">🔍 Threat hunt</div>
         <div class="quick-btn-text">Detect impossible travel logins in Sentinel</div>
       </button>
-      <button class="quick-btn" onclick="quickPrompt('Triage CVE-2024-21413. Give me CVSS score, affected products, exploitability, and recommended patch priority.')">
-        <div class="quick-btn-label">🚨 Vuln triage</div>
-        <div class="quick-btn-text">Triage a CVE with patch priority</div>
+      <button class="quick-btn" onclick="lookupCVEById('CVE-2024-21413')">
+        <div class="quick-btn-label">🚨 Live CVE lookup</div>
+        <div class="quick-btn-text">Fetch & triage CVE-2024-21413 from NVD</div>
       </button>
-      <button class="quick-btn" onclick="quickPrompt('Help me write a risk assessment for a new SaaS vendor with access to PII. Use a likelihood × impact matrix aligned to ISO 27001 and NIST CSF.')">
+      <button class="quick-btn" onclick="quickPrompt('Help me write a risk assessment for a new SaaS vendor with access to PII. Use likelihood × impact matrix (1–5). Align findings to NIST CSF 2.0, ISO 27001:2022 Annex A, and CIS Controls v8.')">
         <div class="quick-btn-label">📊 Risk assessment</div>
-        <div class="quick-btn-text">SaaS vendor risk with ISO 27001 mapping</div>
+        <div class="quick-btn-text">SaaS vendor risk with framework mapping</div>
       </button>
-      <button class="quick-btn" onclick="quickPrompt('Map the following controls to NIST CSF, ISO 27001, and CIS Controls v8: MFA enforcement, endpoint detection, log retention, and vulnerability scanning.')">
-        <div class="quick-btn-label">📋 GRC mapping</div>
-        <div class="quick-btn-text">Map controls across frameworks</div>
+      <button class="quick-btn" onclick="fetchKEV()">
+        <div class="quick-btn-label">📋 CISA KEV</div>
+        <div class="quick-btn-text">Pull latest known exploited vulnerabilities</div>
       </button>
     </div>
   </div>
 
-  <div id="messages" style="display:none"></div>
+  <div id="messages" style="display:none; flex-direction:column;"></div>
 
   <div id="input-area">
     <div class="input-wrapper">
       <textarea id="user-input" placeholder="Ask about CVEs, generate KQL, run a risk assessment…" rows="1"
         onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
-      <button id="send-btn" onclick="sendMessage()" title="Send">↑</button>
+      <button id="send-btn" onclick="sendMessage()">↑</button>
     </div>
-    <div class="input-hint">Enter to send · Shift+Enter for new line · No conversation limits</div>
+    <div class="input-hint">Enter to send · Shift+Enter for new line · Live CVE & CISA KEV tools in sidebar</div>
   </div>
 </div>
 
 <script>
+// ── Mode definitions ──────────────────────────────────────────────────────────
 const MODES = {
   general: {
     label: '🛡️ General analyst',
     hint: 'Sentinel · Defender · NIST · ISO 27001 · CIS · CVSS',
-    prompt: `You are CyberGuard AI, a senior cybersecurity analyst assistant for Subash Ghimire, a cybersecurity analyst specializing in vulnerability management, threat hunting, risk assessments, and governance.
+    prompt: `You are CyberGuard AI, a senior cybersecurity analyst assistant for Subash Ghimire — a cybersecurity analyst specialising in vulnerability management, threat hunting, risk assessments, and governance.
 
-Your expertise covers:
-- Microsoft Sentinel and Microsoft Defender KQL query generation (always specify which platform)
-- CVE triage with CVSS v3.1 scoring, exploitability analysis, and patch prioritization
-- Threat hunting using MITRE ATT&CK framework (always reference technique IDs e.g. T1059.001)
-- Risk assessments aligned to NIST CSF, ISO 27001:2022, and CIS Controls v8
-- GRC tasks: policy writing, control mapping, audit prep, exception handling
+Expertise:
+- Microsoft Sentinel AND Microsoft Defender XDR KQL (always specify platform in query header)
+- CVE triage: CVSS v3.1 base/temporal/environmental scores, exploitability, patch priority
+- Threat hunting mapped to MITRE ATT&CK (always cite Tactic + Technique ID e.g. TA0001 · T1059.001)
+- Risk assessments: NIST CSF 2.0, ISO 27001:2022 Annex A, CIS Controls v8
+- GRC: policy writing, control mapping, audit prep, exception handling
 
-Output rules:
-- KQL queries go in code blocks with a comment header specifying the target platform (Sentinel or Defender)
-- CVE severities: use CRITICAL / HIGH / MEDIUM / LOW labels clearly
-- Risk ratings: always use likelihood × impact matrix (1-5 scale)
-- MITRE techniques: always include tactic name + technique ID
-- Be concise and actionable — skip theory unless asked
-- If a question is ambiguous, ask one clarifying question before proceeding`
+Rules:
+- KQL always goes in a code block with // Platform: comment at the top
+- Severity ratings always use CRITICAL / HIGH / MEDIUM / LOW labels
+- Risk scores use likelihood × impact (1–5 scale, score = L × I)
+- MITRE references always include Tactic name + Technique ID
+- Be concise and actionable. Skip theory unless asked.
+- If ambiguous, ask ONE clarifying question before proceeding.`
   },
   vuln: {
     label: '🚨 Vulnerability management',
-    hint: 'CVE triage · CVSS · patch priority · asset impact',
-    prompt: `You are CyberGuard AI in Vulnerability Management mode, assisting Subash Ghimire.
+    hint: 'CVE triage · CVSS · patch priority · CISA KEV',
+    prompt: `You are CyberGuard AI in Vulnerability Management mode for Subash Ghimire.
 
-Focus exclusively on:
-- CVE triage: CVSS v3.1 base/temporal/environmental scores, vector strings, exploitability
-- Patch prioritization using risk-based approach (asset criticality × exploitability × CVSS)
-- Affected product identification and version ranges
-- Known exploits in the wild (CISA KEV catalogue awareness)
-- Remediation guidance: patches, workarounds, compensating controls
-- Vulnerability trend analysis and reporting language
+Focus on:
+- CVE triage with CVSS v3.1 base score, vector string, exploitability rating
+- CISA KEV awareness — flag if a CVE is known-exploited
+- Patch prioritisation: asset criticality × exploitability × CVSS
+- Affected product version ranges and remediation options
+- Compensating controls when patches aren't immediately available
 
 Format every CVE response as:
-CVE ID | Severity | CVSS Score | Exploited in wild? | Patch priority | Recommended action
+| Field | Detail |
+|---|---|
+| CVE ID | |
+| Severity | CRITICAL / HIGH / MEDIUM / LOW |
+| CVSS v3.1 | score + vector |
+| Exploited in wild | Yes / No / Unknown |
+| Affected products | |
+| Patch available | |
+| Patch priority | Immediate / High / Medium / Low |
+| Recommended action | |
 
-Always ask for the asset's criticality tier if not provided before giving final patch priority.`
+Always ask for asset criticality tier (Critical / High / Medium / Low) if not provided.`
   },
   hunt: {
     label: '🔍 Threat hunting · KQL',
-    hint: 'KQL for Sentinel & Defender · MITRE ATT&CK · IOC lookup',
-    prompt: `You are CyberGuard AI in Threat Hunting mode, assisting Subash Ghimire who uses both Microsoft Sentinel and Microsoft Defender.
+    hint: 'KQL for Sentinel & Defender · MITRE ATT&CK · IOC analysis',
+    prompt: `You are CyberGuard AI in Threat Hunting mode for Subash Ghimire who uses both Microsoft Sentinel and Microsoft Defender XDR.
 
-Specializations:
-- Generate production-ready KQL queries with comments explaining each clause
-- Always specify at the top of each query: // Platform: Microsoft Sentinel or // Platform: Microsoft Defender XDR
-- Map every hunt hypothesis to MITRE ATT&CK (Tactic > Technique > Sub-technique)
-- Structure hunts as: Hypothesis → Data sources → KQL query → Expected output → Response actions
-- Common tables: SecurityEvent, Syslog, AzureActivity, SigninLogs, DeviceProcessEvents, DeviceNetworkEvents, IdentityLogonEvents, EmailEvents
-- Include time range parameters and performance-conscious filters (use ago() and limit rows with take/top for testing)
-- After every query, list: what a true positive looks like vs. false positive tuning tips
+Rules for KQL output:
+- Always start with // Platform: Microsoft Sentinel OR // Platform: Microsoft Defender XDR
+- Add a comment block describing what the query detects and the MITRE technique it covers
+- Use let statements for reusable variables and time windows
+- Include summarize with chart-friendly output where useful
+- Add performance guards: time filters first, use has/contains before regex
 
-When generating KQL:
-1. Add a comment block at the top describing what the query detects
-2. Use let statements for reusable variables
-3. Include summarize with chart-friendly output where possible`
+Common Sentinel tables: SecurityEvent, Syslog, AzureActivity, SigninLogs, OfficeActivity, ThreatIntelligenceIndicator, CommonSecurityLog
+Common Defender tables: DeviceProcessEvents, DeviceNetworkEvents, DeviceFileEvents, DeviceLogonEvents, IdentityLogonEvents, EmailEvents, CloudAppEvents
+
+Hunt structure for every request:
+1. Hypothesis (what threat behaviour are we looking for)
+2. MITRE ATT&CK mapping (Tactic · Technique · Sub-technique)
+3. KQL query in code block
+4. True positive indicators
+5. False positive tuning tips
+6. Suggested response actions`
   },
   risk: {
     label: '📊 Risk assessment',
-    hint: 'NIST CSF · ISO 27001 · CIS · likelihood × impact',
-    prompt: `You are CyberGuard AI in Risk Assessment mode, assisting Subash Ghimire.
+    hint: 'NIST CSF 2.0 · ISO 27001 · CIS v8 · likelihood × impact',
+    prompt: `You are CyberGuard AI in Risk Assessment mode for Subash Ghimire.
 
-Risk methodology:
-- Default to likelihood × impact matrix (1-5 scale, producing 1-25 risk score)
-- Risk tiers: Critical (20-25), High (15-19), Medium (8-14), Low (1-7)
-- Align findings to NIST CSF 2.0 functions (Govern, Identify, Protect, Detect, Respond, Recover)
+Methodology:
+- Likelihood × Impact matrix (1–5 scale, risk score 1–25)
+- Tiers: Critical 20–25 | High 15–19 | Medium 8–14 | Low 1–7
+- Align to NIST CSF 2.0 functions: Govern · Identify · Protect · Detect · Respond · Recover
 - Cross-reference ISO 27001:2022 Annex A controls
 - Map to CIS Controls v8 where applicable
 
 Risk assessment output format:
-1. Asset / system description
+1. Asset / system + classification (Public / Internal / Confidential / Restricted)
 2. Threat scenario
 3. Existing controls
-4. Likelihood (1-5) + justification
-5. Impact (1-5) + justification
-6. Inherent risk score
+4. Likelihood (1–5) + justification
+5. Impact (1–5) + justification
+6. Inherent risk score (L × I)
 7. Residual risk after controls
-8. Recommended treatment (Accept / Mitigate / Transfer / Avoid)
-9. Control recommendations with framework mappings
+8. Treatment recommendation: Accept / Mitigate / Transfer / Avoid
+9. Recommended controls with NIST CSF / ISO 27001 / CIS v8 mappings
 
-Always ask for asset classification (Public / Internal / Confidential / Restricted) if not provided.`
+Ask for asset classification if not provided before scoring.`
   },
   grc: {
     label: '📋 Governance · GRC',
     hint: 'Policy writing · control mapping · audit prep · exceptions',
-    prompt: `You are CyberGuard AI in GRC mode, assisting Subash Ghimire with governance, risk, and compliance tasks.
+    prompt: `You are CyberGuard AI in GRC mode for Subash Ghimire.
 
 Capabilities:
-- Policy and procedure drafting (information security, acceptable use, incident response, vendor management)
-- Control framework mapping across NIST CSF 2.0, ISO 27001:2022, CIS Controls v8, SOC 2, GDPR
-- Audit preparation: evidence collection checklists, gap analysis, finding remediation plans
-- Exception request drafting and risk acceptance documentation
-- Security awareness content and training material outlines
-- Third-party / vendor risk questionnaire generation
+- Policy and procedure drafting (infosec, AUP, IR, vendor management, data classification)
+- Control framework mapping: NIST CSF 2.0 · ISO 27001:2022 · CIS Controls v8 · SOC 2 · GDPR
+- Audit prep: evidence collection checklists, gap analysis, finding remediation plans
+- Exception request and risk acceptance documentation
+- Third-party vendor risk questionnaire generation
 
 Output style:
-- Policies use formal language with clear scope, purpose, roles, and review cycle
-- Control mappings presented as tables: Control description | NIST CSF | ISO 27001 | CIS v8
-- Audit prep checklists use checkbox format with evidence type noted
-- Always include document metadata placeholder: Version, Owner, Review date, Classification`
+- Policies: formal language, clear scope / purpose / roles / review cycle
+- Control mappings: table format — Control | NIST CSF | ISO 27001 | CIS v8
+- Audit checklists: checkbox format with evidence type noted
+- Always include doc metadata: Version · Owner · Review date · Classification`
   }
 };
 
@@ -425,7 +393,7 @@ let currentMode = 'general';
 let messages = [];
 let isStreaming = false;
 
-// Load saved API key
+// ── Init ──────────────────────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
   const saved = localStorage.getItem('cg_api_key');
   if (saved) {
@@ -451,6 +419,7 @@ function getApiKey() {
   return localStorage.getItem('cg_api_key') || document.getElementById('api-key-input').value.trim();
 }
 
+// ── Mode ──────────────────────────────────────────────────────────────────────
 function setMode(mode) {
   currentMode = mode;
   document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
@@ -459,18 +428,23 @@ function setMode(mode) {
   document.getElementById('toolbar-hint').textContent = MODES[mode].hint;
 }
 
+// ── Chat helpers ──────────────────────────────────────────────────────────────
 function newChat() {
   messages = [];
   document.getElementById('messages').innerHTML = '';
   document.getElementById('messages').style.display = 'none';
   document.getElementById('welcome').style.display = 'flex';
 }
-
 function clearChat() { newChat(); }
 
 function quickPrompt(text) {
   document.getElementById('user-input').value = text;
   sendMessage();
+}
+
+function promptThreatSearch() {
+  const q = prompt('What threat, campaign, or actor do you want to search for?');
+  if (q) quickPrompt(`Search for current threat intelligence on: ${q}. Include recent campaigns, TTPs, IOCs, and any relevant advisories or CISA alerts.`);
 }
 
 function handleKey(e) {
@@ -482,26 +456,35 @@ function autoResize(el) {
   el.style.height = Math.min(el.scrollHeight, 160) + 'px';
 }
 
-function renderContent(text) {
-  // Code blocks
-  text = text.replace(/```(\w*)\n?([\s\S]*?)```/g, (_, lang, code) => {
-    const id = 'cb' + Math.random().toString(36).slice(2,7);
-    return `<pre id="${id}"><button class="copy-btn" onclick="copyCode('${id}', this)">Copy</button><code>${escHtml(code.trim())}</code></pre>`;
-  });
-  // Inline code
-  text = text.replace(/`([^`]+)`/g, '<code>$1</code>');
-  // Bold
-  text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-  // CRITICAL/HIGH/MEDIUM/LOW severity badges
-  text = text.replace(/\b(CRITICAL)\b/g, '<span class="badge badge-critical">CRITICAL</span>');
-  text = text.replace(/\b(HIGH)\b/g, '<span class="badge badge-high">HIGH</span>');
-  text = text.replace(/\b(MEDIUM)\b/g, '<span class="badge badge-medium">MEDIUM</span>');
-  text = text.replace(/\b(LOW)\b/g, '<span class="badge badge-low">LOW</span>');
-  return text;
+function scrollBottom() {
+  const m = document.getElementById('messages');
+  requestAnimationFrame(() => { m.scrollTop = m.scrollHeight; });
 }
 
+function showMessages() {
+  document.getElementById('welcome').style.display = 'none';
+  const msgs = document.getElementById('messages');
+  msgs.style.display = 'flex';
+  return msgs;
+}
+
+// ── Rendering ─────────────────────────────────────────────────────────────────
 function escHtml(t) {
   return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function renderContent(text) {
+  text = text.replace(/```(\w*)\n?([\s\S]*?)```/g, (_, lang, code) => {
+    const id = 'cb' + Math.random().toString(36).slice(2,8);
+    return `<pre id="${id}"><button class="copy-btn" onclick="copyCode('${id}',this)">Copy</button><code>${escHtml(code.trim())}</code></pre>`;
+  });
+  text = text.replace(/`([^`]+)`/g, '<code>$1</code>');
+  text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  text = text.replace(/\bCRITICAL\b/g, '<span class="badge badge-critical">CRITICAL</span>');
+  text = text.replace(/\bHIGH\b/g, '<span class="badge badge-high">HIGH</span>');
+  text = text.replace(/\bMEDIUM\b/g, '<span class="badge badge-medium">MEDIUM</span>');
+  text = text.replace(/\bLOW\b/g, '<span class="badge badge-low">LOW</span>');
+  return text;
 }
 
 function copyCode(id, btn) {
@@ -512,30 +495,183 @@ function copyCode(id, btn) {
   });
 }
 
-function scrollBottom() {
-  const m = document.getElementById('messages');
-  m.scrollTop = m.scrollHeight;
-}
-
-function addMessage(role, content, streaming = false) {
-  const welcome = document.getElementById('welcome');
-  const msgs = document.getElementById('messages');
-  welcome.style.display = 'none';
-  msgs.style.display = 'flex';
-
+function addMessage(role, contentHtml, label) {
+  const msgs = showMessages();
   const div = document.createElement('div');
   div.className = 'msg ' + role;
+  const avatar = role === 'user' ? '👤' : role === 'tool-result' ? '🔧' : '🛡️';
+  const roleLabel = label || (role === 'user' ? 'You' : role === 'tool-result' ? 'Live data' : 'CyberGuard AI');
   div.innerHTML = `
-    <div class="msg-avatar">${role === 'user' ? '👤' : '🛡️'}</div>
+    <div class="msg-avatar">${avatar}</div>
     <div class="msg-body">
-      <div class="msg-role">${role === 'user' ? 'You' : 'CyberGuard AI'}</div>
-      <div class="msg-content${streaming ? ' stream-cursor' : ''}" id="mc-${div.id || Date.now()}">${renderContent(content)}</div>
+      <div class="msg-role">${roleLabel}</div>
+      <div class="msg-content">${contentHtml}</div>
     </div>`;
   msgs.appendChild(div);
   scrollBottom();
   return div.querySelector('.msg-content');
 }
 
+// ── Live tool: CVE lookup (NVD API) ──────────────────────────────────────────
+function lookupCVE() {
+  const val = document.getElementById('cve-input').value.trim().toUpperCase();
+  if (!val.match(/^CVE-\d{4}-\d+$/)) { alert('Enter a valid CVE ID e.g. CVE-2024-21413'); return; }
+  lookupCVEById(val);
+}
+
+async function lookupCVEById(cveId) {
+  cveId = cveId.toUpperCase();
+  const msgs = showMessages();
+
+  // User bubble
+  addMessage('user', escHtml(`Looking up ${cveId} from NVD…`));
+
+  // Tool result bubble placeholder
+  const placeholder = document.createElement('div');
+  placeholder.className = 'msg tool-result';
+  placeholder.innerHTML = `
+    <div class="msg-avatar">🔧</div>
+    <div class="msg-body">
+      <div class="msg-role">NVD Live Data</div>
+      <div class="msg-content"><div class="typing"><span></span><span></span><span></span></div></div>
+    </div>`;
+  msgs.appendChild(placeholder);
+  scrollBottom();
+  const bubble = placeholder.querySelector('.msg-content');
+
+  try {
+    const res = await fetch(`https://services.nvd.nist.gov/rest/json/cves/2.0?cveID=${cveId}`);
+    const data = await res.json();
+    const item = data.vulnerabilities?.[0]?.cve;
+
+    if (!item) { bubble.innerHTML = `<span style="color:var(--red)">CVE not found in NVD.</span>`; return; }
+
+    const desc = item.descriptions?.find(d => d.lang === 'en')?.value || 'No description.';
+    const metrics = item.metrics?.cvssMetricV31?.[0] || item.metrics?.cvssMetricV30?.[0] || item.metrics?.cvssMetricV2?.[0];
+    const score = metrics?.cvssData?.baseScore ?? 'N/A';
+    const severity = metrics?.cvssData?.baseSeverity ?? metrics?.baseSeverity ?? 'N/A';
+    const vector = metrics?.cvssData?.vectorString ?? 'N/A';
+    const published = item.published?.split('T')[0] ?? 'N/A';
+    const refs = (item.references || []).slice(0,3).map(r => `<a href="${r.url}" target="_blank" style="color:var(--accent2);font-size:12px">${r.url.replace(/https?:\/\//,'').slice(0,60)}…</a>`).join('<br>');
+
+    const sevClass = severity === 'CRITICAL' ? 'badge-critical' : severity === 'HIGH' ? 'badge-high' : severity === 'MEDIUM' ? 'badge-medium' : 'badge-low';
+
+    bubble.innerHTML = `
+      <div class="tool-card">
+        <div class="tool-card-header"><span class="tool-card-icon">🔍</span><span class="tool-card-title">${cveId} · NVD</span></div>
+        <div class="tool-card-body">
+          <strong>Severity:</strong> <span class="badge ${sevClass}">${severity}</span> &nbsp; <strong>CVSS v3:</strong> ${score}<br>
+          <strong>Vector:</strong> <code style="font-size:11px">${vector}</code><br>
+          <strong>Published:</strong> ${published}<br><br>
+          <strong>Description:</strong><br>${escHtml(desc)}<br><br>
+          <strong>References:</strong><br>${refs || 'None'}
+        </div>
+      </div>`;
+    scrollBottom();
+
+    // Now inject into Claude for analysis
+    const context = `NVD data for ${cveId}:\n- Severity: ${severity}\n- CVSS v3.1: ${score} (${vector})\n- Published: ${published}\n- Description: ${desc}`;
+    messages.push({ role: 'user', content: `I just fetched live NVD data for ${cveId}. Here it is:\n\n${context}\n\nPlease triage this CVE: give me patch priority, exploitability analysis, affected products if identifiable, and recommended actions. Use the vulnerability management format.` });
+    await streamResponse();
+
+  } catch(e) {
+    bubble.innerHTML = `<span style="color:var(--red)">NVD fetch error: ${e.message}. Check your connection.</span>`;
+  }
+}
+
+// ── Live tool: CISA KEV ───────────────────────────────────────────────────────
+async function fetchKEV() {
+  const btn = document.getElementById('btn-kev');
+  btn.classList.add('loading'); btn.disabled = true;
+
+  addMessage('user', 'Fetching latest CISA Known Exploited Vulnerabilities…');
+
+  const msgs = showMessages();
+  const placeholder = document.createElement('div');
+  placeholder.className = 'msg tool-result';
+  placeholder.innerHTML = `<div class="msg-avatar">🔧</div><div class="msg-body"><div class="msg-role">CISA KEV Live Feed</div><div class="msg-content"><div class="typing"><span></span><span></span><span></span></div></div></div>`;
+  msgs.appendChild(placeholder);
+  scrollBottom();
+  const bubble = placeholder.querySelector('.msg-content');
+
+  try {
+    const res = await fetch('https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json');
+    const data = await res.json();
+    const vulns = data.vulnerabilities || [];
+    // Get 10 most recently added
+    const recent = vulns.slice(-10).reverse();
+
+    const rows = recent.map(v => `
+      <tr>
+        <td style="padding:5px 8px;font-family:var(--mono);font-size:11px;color:var(--accent2)">${v.cveID}</td>
+        <td style="padding:5px 8px;font-size:12px">${v.vendorProject} · ${v.product}</td>
+        <td style="padding:5px 8px;font-size:11px;color:var(--text2)">${v.dateAdded}</td>
+        <td style="padding:5px 8px;font-size:11px;color:var(--yellow)">${v.dueDate}</td>
+      </tr>`).join('');
+
+    bubble.innerHTML = `
+      <div class="tool-card">
+        <div class="tool-card-header"><span class="tool-card-icon">🚨</span><span class="tool-card-title">CISA KEV · ${data.count} total · 10 most recent</span></div>
+        <div class="tool-card-body">
+          <table style="width:100%;border-collapse:collapse">
+            <tr style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px">
+              <th style="padding:4px 8px;text-align:left">CVE</th>
+              <th style="padding:4px 8px;text-align:left">Vendor · Product</th>
+              <th style="padding:4px 8px;text-align:left">Added</th>
+              <th style="padding:4px 8px;text-align:left">Due date</th>
+            </tr>
+            ${rows}
+          </table>
+        </div>
+      </div>`;
+    scrollBottom();
+
+    // Send to Claude for analysis
+    const summary = recent.map(v => `${v.cveID} | ${v.vendorProject} ${v.product} | Added: ${v.dateAdded} | ${v.shortDescription}`).join('\n');
+    messages.push({ role: 'user', content: `I just pulled the 10 most recently added entries from the CISA KEV feed:\n\n${summary}\n\nAnalyse these. Which ones are most critical for a typical enterprise environment? Flag any affecting Microsoft, network devices, or widely-deployed software. What should I prioritise patching this week?` });
+    await streamResponse();
+
+  } catch(e) {
+    bubble.innerHTML = `<span style="color:var(--red)">CISA KEV fetch error: ${e.message}</span>`;
+  } finally {
+    btn.classList.remove('loading'); btn.disabled = false;
+  }
+}
+
+// ── Live tool: MITRE ATT&CK ───────────────────────────────────────────────────
+async function lookupMITRE() {
+  const val = document.getElementById('mitre-input').value.trim().toUpperCase();
+  if (!val.match(/^T\d{4}(\.\d{3})?$/)) { alert('Enter a valid technique ID e.g. T1059 or T1059.001'); return; }
+
+  addMessage('user', escHtml(`Looking up MITRE ATT&CK ${val}…`));
+
+  const msgs = showMessages();
+  const placeholder = document.createElement('div');
+  placeholder.className = 'msg tool-result';
+  placeholder.innerHTML = `<div class="msg-avatar">🔧</div><div class="msg-body"><div class="msg-role">MITRE ATT&CK</div><div class="msg-content"><div class="typing"><span></span><span></span><span></span></div></div></div>`;
+  msgs.appendChild(placeholder);
+  scrollBottom();
+  const bubble = placeholder.querySelector('.msg-content');
+
+  try {
+    // Use MITRE ATT&CK STIX API
+    const isSubtech = val.includes('.');
+    const url = isSubtech
+      ? `https://attack.mitre.org/api/v1/techniques/?technique_id=${val}`
+      : `https://attack.mitre.org/api/v1/techniques/?technique_id=${val}`;
+
+    // Fall back to Claude knowledge since MITRE API has CORS restrictions
+    bubble.innerHTML = `<div class="tool-card"><div class="tool-card-header"><span class="tool-card-icon">🎯</span><span class="tool-card-title">MITRE ATT&CK · ${val}</span></div><div class="tool-card-body">Analysing with Claude using ATT&CK knowledge base…</div></div>`;
+
+    messages.push({ role: 'user', content: `Give me a complete threat hunting brief for MITRE ATT&CK technique ${val}. Include:\n1. Technique name and tactic\n2. Description of how adversaries use it\n3. Detection opportunities (data sources, log events to look for)\n4. KQL query for Microsoft Sentinel to detect this technique\n5. KQL query for Microsoft Defender XDR\n6. Response and containment actions` });
+    await streamResponse();
+
+  } catch(e) {
+    bubble.innerHTML = `<span style="color:var(--red)">Error: ${e.message}</span>`;
+  }
+}
+
+// ── Claude API streaming ──────────────────────────────────────────────────────
 async function sendMessage() {
   if (isStreaming) return;
   const input = document.getElementById('user-input');
@@ -543,35 +679,27 @@ async function sendMessage() {
   if (!text) return;
 
   const apiKey = getApiKey();
-  if (!apiKey) {
-    alert('Please enter your Anthropic API key in the sidebar first.');
-    return;
-  }
+  if (!apiKey) { alert('Enter your Anthropic API key in the sidebar first.'); return; }
 
   input.value = '';
   input.style.height = 'auto';
-  document.getElementById('send-btn').disabled = true;
-  isStreaming = true;
 
-  addMessage('user', text);
+  addMessage('user', escHtml(text));
   messages.push({ role: 'user', content: text });
+  await streamResponse();
+}
 
-  // Streaming assistant bubble
-  const welcome = document.getElementById('welcome');
-  const msgs = document.getElementById('messages');
-  welcome.style.display = 'none';
-  msgs.style.display = 'flex';
+async function streamResponse() {
+  if (isStreaming) return;
+  isStreaming = true;
+  document.getElementById('send-btn').disabled = true;
+
+  const apiKey = getApiKey();
+  const msgs = showMessages();
 
   const div = document.createElement('div');
   div.className = 'msg assistant';
-  div.innerHTML = `
-    <div class="msg-avatar">🛡️</div>
-    <div class="msg-body">
-      <div class="msg-role">CyberGuard AI</div>
-      <div class="msg-content stream-cursor" id="stream-bubble">
-        <div class="typing"><span></span><span></span><span></span></div>
-      </div>
-    </div>`;
+  div.innerHTML = `<div class="msg-avatar">🛡️</div><div class="msg-body"><div class="msg-role">CyberGuard AI</div><div class="msg-content stream-cursor" id="stream-bubble"><div class="typing"><span></span><span></span><span></span></div></div></div>`;
   msgs.appendChild(div);
   scrollBottom();
   const bubble = document.getElementById('stream-bubble');
@@ -597,7 +725,7 @@ async function sendMessage() {
     if (!resp.ok) {
       const err = await resp.json();
       bubble.classList.remove('stream-cursor');
-      bubble.innerHTML = `<span style="color:var(--red)">Error: ${err.error?.message || resp.statusText}</span>`;
+      bubble.innerHTML = `<span style="color:var(--red)">API error: ${err.error?.message || resp.statusText}</span>`;
       isStreaming = false;
       document.getElementById('send-btn').disabled = false;
       return;
@@ -611,8 +739,7 @@ async function sendMessage() {
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
-      const chunk = decoder.decode(value, { stream: true });
-      const lines = chunk.split('\n');
+      const lines = decoder.decode(value, { stream: true }).split('\n');
       for (const line of lines) {
         if (!line.startsWith('data: ')) continue;
         const data = line.slice(6).trim();
@@ -633,7 +760,7 @@ async function sendMessage() {
     messages.push({ role: 'assistant', content: fullText });
     scrollBottom();
 
-  } catch (e) {
+  } catch(e) {
     bubble.classList.remove('stream-cursor');
     bubble.innerHTML = `<span style="color:var(--red)">Network error: ${e.message}</span>`;
   }
