@@ -564,6 +564,14 @@ function saveCurrentChat() {
   renderHistory();
 }
 
+function extractDisplayText(content) {
+  if (typeof content === 'string') return content;
+  if (Array.isArray(content)) {
+    return content.filter(b => b.type === 'text').map(b => b.text).join('\n');
+  }
+  return '';
+}
+
 function loadChat(id) {
   const chat = chatHistory.find(c => c.id === id);
   if (!chat) return;
@@ -576,7 +584,9 @@ function loadChat(id) {
   document.getElementById('welcome').style.display = 'none';
   msgs.style.display = 'flex';
   messages.forEach(m => {
-    addMessageHTML(m.role === 'user' ? 'user' : 'assistant', renderContent(escHtml(m.content)), m.role === 'user' ? 'You' : 'CyberGuard AI');
+    const text = extractDisplayText(m.content);
+    if (!text.trim()) return; // skip pure tool-use blocks with no text yet
+    addMessageHTML(m.role === 'user' ? 'user' : 'assistant', renderContent(escHtml(text)), m.role === 'user' ? 'You' : 'CyberGuard AI');
   });
   scrollBottom();
   renderHistory();
@@ -715,7 +725,7 @@ async function sendMessage() {
   saveCurrentChat();
 }
 
-// ── Stream response ───────────────────────────────────────────────────────────
+// ── Stream response (with native web search tool) ────────────────────────────
 async function streamResponse() {
   if (isStreaming) return;
   isStreaming = true;
@@ -727,57 +737,85 @@ async function streamResponse() {
   div.innerHTML = `<div class="av">🛡️</div><div class="mb"><div class="mr">CyberGuard AI</div><div class="mc stream-cursor" id="stream-bubble"><div class="typing"><span></span><span></span><span></span></div></div></div>`;
   msgs.appendChild(div);
   scrollBottom();
-  const bubble = document.getElementById('stream-bubble');
+  let bubble = document.getElementById('stream-bubble');
 
   try {
-    const resp = await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':getApiKey(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:4096,system:MODES[currentMode].prompt,stream:true,messages})
-    });
+    let keepGoing = true;
+    let finalText = '';
 
-    if (!resp.ok) {
-      const err=await resp.json();
-      bubble.classList.remove('stream-cursor');
-      bubble.innerHTML=`<span style="color:var(--red)">API error: ${err.error?.message||resp.statusText}</span>`;
-      isStreaming=false; document.getElementById('send-btn').disabled=false; return;
-    }
+    while (keepGoing) {
+      const resp = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-api-key': getApiKey(), 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-6',
+          max_tokens: 4096,
+          system: MODES[currentMode].prompt + '\n\nYou have a web_search tool. Use it automatically whenever a question needs current information you may not know reliably: recent CVEs, active threat campaigns, breaking security news, current advisory status, anything time-sensitive. Do not use it for general knowledge questions you can already answer well (e.g. explaining a concept, writing KQL syntax, scoring methodology).',
+          tools: [{ type: 'web_search_20250305', name: 'web_search' }],
+          messages
+        })
+      });
 
-    const reader=resp.body.getReader(), decoder=new TextDecoder();
-    let fullText='';
-    bubble.innerHTML='';
+      if (!resp.ok) {
+        const err = await resp.json();
+        bubble.classList.remove('stream-cursor');
+        bubble.innerHTML = `<span style="color:var(--red)">API error: ${err.error?.message || resp.statusText}</span>`;
+        keepGoing = false; break;
+      }
 
-    while(true){
-      const {done,value}=await reader.read();
-      if(done)break;
-      for(const line of decoder.decode(value,{stream:true}).split('\n')){
-        if(!line.startsWith('data: '))continue;
-        const data=line.slice(6).trim();
-        if(data==='[DONE]')break;
-        try{
-          const p=JSON.parse(data);
-          if(p.type==='content_block_delta'&&p.delta?.text){
-            fullText+=p.delta.text;
-            bubble.innerHTML=renderContent(fullText);
-            scrollBottom();
-          }
-        }catch{}
+      const data = await resp.json();
+      const blocks = data.content || [];
+
+      // Show any search calls happening
+      const searchBlocks = blocks.filter(b => b.type === 'server_tool_use' && b.name === 'web_search');
+      if (searchBlocks.length) {
+        const queries = searchBlocks.map(b => b.input?.query).filter(Boolean);
+        bubble.classList.remove('stream-cursor');
+        bubble.innerHTML = `<div class="tc"><div class="tc-head"><span>🌐</span><span class="tc-title">Searching the web</span></div><div class="tc-body">${queries.map(q=>`Searching: <em>${escHtml(q)}</em>`).join('<br>')}</div></div><div class="typing"><span></span><span></span><span></span></div>`;
+        scrollBottom();
+      }
+
+      // Collect text from this turn
+      const textBlocks = blocks.filter(b => b.type === 'text');
+      finalText = textBlocks.map(b => b.text).join('\n');
+
+      // Append assistant turn to message history (needed for multi-turn tool use)
+      messages.push({ role: 'assistant', content: blocks });
+
+      if (data.stop_reason === 'end_turn' || data.stop_reason === 'max_tokens' || !searchBlocks.length) {
+        keepGoing = false;
+        bubble.classList.remove('stream-cursor');
+        bubble.innerHTML = renderContentWithCitations(textBlocks);
+        scrollBottom();
+      }
+      // If stop_reason is pause_turn or tool use is server-side, the API already
+      // executed the search server-side and returned results in the same response
+      // (web_search_20250305 is a server tool — no client-side tool_result needed)
+      if (data.stop_reason !== 'end_turn' && searchBlocks.length && textBlocks.length) {
+        // Server tool already resolved; this was the final answer after searching
+        keepGoing = false;
       }
     }
 
+  } catch (e) {
     bubble.classList.remove('stream-cursor');
-    bubble.innerHTML=renderContent(fullText);
-    messages.push({role:'assistant',content:fullText});
-    scrollBottom();
-
-  } catch(e) {
-    bubble.classList.remove('stream-cursor');
-    bubble.innerHTML=`<span style="color:var(--red)">Network error: ${e.message}</span>`;
+    bubble.innerHTML = `<span style="color:var(--red)">Network error: ${e.message}</span>`;
   }
 
-  isStreaming=false;
-  document.getElementById('send-btn').disabled=false;
+  isStreaming = false;
+  document.getElementById('send-btn').disabled = false;
   document.getElementById('user-input').focus();
+}
+
+function renderContentWithCitations(textBlocks) {
+  return textBlocks.map(b => {
+    let html = renderContent(escHtml(b.text));
+    if (b.citations && b.citations.length) {
+      const links = b.citations.map(c => `<a href="${c.url}" target="_blank" style="color:var(--accent2)">${(c.title||c.url).slice(0,50)}</a>`).join(' · ');
+      html += `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);font-size:11px;color:var(--text3)">Sources: ${links}</div>`;
+    }
+    return html;
+  }).join('');
 }
 
 // ── CVE Lookup ────────────────────────────────────────────────────────────────
