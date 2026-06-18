@@ -220,9 +220,17 @@
 
   <hr class="div"/>
   <div class="sec-label">Chat history</div>
+  <div class="kb-status loading" id="gist-status">⏳ Gist sync not connected</div>
   <div id="history-list"></div>
 
   <div class="sb-footer">
+    <div class="api-label">GitHub Token (Gist sync)</div>
+    <div class="api-row">
+      <input class="api-in" type="password" id="gh-token-input" placeholder="ghp_..."/>
+      <button class="api-save" onclick="saveGhToken()">Save</button>
+    </div>
+    <div class="api-st" id="gh-status" style="margin-bottom:10px"></div>
+
     <div class="api-label">Anthropic API Key</div>
     <div class="api-row">
       <input class="api-in" type="password" id="api-key-input" placeholder="sk-ant-..."/>
@@ -382,15 +390,146 @@ function searchKB(query, topN=5) {
   return scored.slice(0, topN);
 }
 
-// ── Chat History (localStorage) ───────────────────────────────────────────────
+// ── GitHub Gist sync ──────────────────────────────────────────────────────────
+const GIST_FILENAME = 'cyberguard_ai_history.json';
+let gistId = localStorage.getItem('cg_gist_id') || null;
+let gistSyncInFlight = false;
+let gistSyncQueued = false;
+
+function getGhToken() { return localStorage.getItem('cg_gh_token') || ''; }
+
+function saveGhToken() {
+  const t = document.getElementById('gh-token-input').value.trim();
+  if (!t.startsWith('ghp_') && !t.startsWith('github_pat_')) {
+    setGhStatus('✗ Must start with ghp_ or github_pat_','err'); return;
+  }
+  localStorage.setItem('cg_gh_token', t);
+  setGhStatus('✓ Saved — connecting…','ok');
+  initGistSync();
+}
+
+function setGhStatus(t,c) { const el=document.getElementById('gh-status'); el.textContent=t; el.className='api-st '+c; }
+function setGistStatus(t,c) { const el=document.getElementById('gist-status'); el.textContent=t; el.className='kb-status '+c; }
+
+async function initGistSync() {
+  const token = getGhToken();
+  if (!token) { setGistStatus('⏳ Add GitHub token to sync','loading'); return; }
+
+  setGistStatus('⏳ Connecting to Gist…','loading');
+  try {
+    if (gistId) {
+      // Try to fetch existing gist
+      const res = await fetch(`https://api.github.com/gists/${gistId}`, {
+        headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github+json' }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const content = data.files?.[GIST_FILENAME]?.content;
+        if (content) {
+          chatHistory = JSON.parse(content);
+          renderHistory();
+        }
+        setGistStatus(`✅ Synced · ${chatHistory.length} chats`,'ok');
+        return;
+      }
+      // Gist not found, fall through to search/create
+      gistId = null;
+    }
+
+    // Search existing gists for our file
+    const listRes = await fetch('https://api.github.com/gists', {
+      headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github+json' }
+    });
+    if (!listRes.ok) {
+      setGistStatus('✗ Invalid token or no gist scope','err');
+      return;
+    }
+    const gists = await listRes.json();
+    const found = gists.find(g => g.files && g.files[GIST_FILENAME]);
+
+    if (found) {
+      gistId = found.id;
+      localStorage.setItem('cg_gist_id', gistId);
+      const fileRes = await fetch(found.files[GIST_FILENAME].raw_url);
+      const content = await fileRes.text();
+      chatHistory = JSON.parse(content || '[]');
+      renderHistory();
+      setGistStatus(`✅ Synced · ${chatHistory.length} chats`,'ok');
+    } else {
+      // Create new gist
+      await createGist(token);
+    }
+  } catch(e) {
+    setGistStatus('✗ Sync error: ' + e.message,'err');
+  }
+}
+
+async function createGist(token) {
+  try {
+    const res = await fetch('https://api.github.com/gists', {
+      method: 'POST',
+      headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github+json' },
+      body: JSON.stringify({
+        description: 'CyberGuard AI — chat history (private)',
+        public: false,
+        files: { [GIST_FILENAME]: { content: JSON.stringify(chatHistory.length ? chatHistory : [], null, 2) } }
+      })
+    });
+    if (!res.ok) { setGistStatus('✗ Could not create gist','err'); return; }
+    const data = await res.json();
+    gistId = data.id;
+    localStorage.setItem('cg_gist_id', gistId);
+    setGistStatus(`✅ Synced · ${chatHistory.length} chats`,'ok');
+  } catch(e) {
+    setGistStatus('✗ Create error: ' + e.message,'err');
+  }
+}
+
+async function pushToGist() {
+  const token = getGhToken();
+  if (!token || !gistId) return;
+  if (gistSyncInFlight) { gistSyncQueued = true; return; }
+  gistSyncInFlight = true;
+  setGistStatus('⏳ Syncing…','loading');
+  try {
+    const res = await fetch(`https://api.github.com/gists/${gistId}`, {
+      method: 'PATCH',
+      headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github+json' },
+      body: JSON.stringify({
+        files: { [GIST_FILENAME]: { content: JSON.stringify(chatHistory, null, 2) } }
+      })
+    });
+    if (res.ok) setGistStatus(`✅ Synced · ${chatHistory.length} chats`,'ok');
+    else setGistStatus('✗ Sync failed — will retry','err');
+  } catch(e) {
+    setGistStatus('✗ Sync error — offline?','err');
+  } finally {
+    gistSyncInFlight = false;
+    if (gistSyncQueued) { gistSyncQueued = false; pushToGist(); }
+  }
+}
+
+// ── Chat History (Gist-backed, localStorage fallback) ────────────────────────
 function loadHistory() {
   try { chatHistory = JSON.parse(localStorage.getItem('cg_history') || '[]'); }
   catch(e) { chatHistory = []; }
   renderHistory();
+  // Attempt Gist sync on load if token already saved
+  const token = getGhToken();
+  if (token) {
+    document.getElementById('gh-token-input').value = token;
+    setGhStatus('✓ Loaded','ok');
+    initGistSync();
+  } else {
+    setGistStatus('⏳ Add GitHub token to sync','loading');
+  }
 }
 
 function saveHistory() {
-  localStorage.setItem('cg_history', JSON.stringify(chatHistory.slice(0,50)));
+  chatHistory = chatHistory.slice(0,100);
+  localStorage.setItem('cg_history', JSON.stringify(chatHistory));
+  if (getGhToken() && gistId) pushToGist();
+  else if (getGhToken() && !gistId) initGistSync();
 }
 
 function renderHistory() {
